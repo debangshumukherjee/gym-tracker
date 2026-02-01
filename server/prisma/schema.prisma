@@ -1,0 +1,144 @@
+// server/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// --------------------------------------
+// 1. USER MANAGEMENT
+// --------------------------------------
+
+model User {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  gender          String?
+  email           String    @unique
+  password        String
+  
+  // Verification & Security
+  isVerified      Boolean   @default(false)
+  otp             String?   
+  otpExpires      DateTime? 
+
+  // Password Reset
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+
+  // Email Change Logic
+  newEmail             String?
+  newEmailOtp          String?
+  newEmailOtpExpires   DateTime?
+  
+  // Body Metrics
+  dateOfBirth     DateTime?
+  height          Float?    // Stored in CM
+  currentWeight   Float?    // Stored in KG (Latest value)
+  
+  // Timestamps
+  createdAt       DateTime? @default(now())
+  updatedAt       DateTime? @updatedAt
+  
+  // Relationships
+  weightHistory   WeightHistory[] 
+  workouts        Workout[]
+  exercises       Exercise[] 
+  templates       Template[] 
+}
+
+// --------------------------------------
+// 2. METRICS & HISTORY
+// --------------------------------------
+
+// Tracks body weight over time for graphing
+model WeightHistory {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  weight    Float
+  date      DateTime @default(now())
+}
+
+// --------------------------------------
+// 3. EXERCISE DATABASE
+// --------------------------------------
+
+// Stores both Global (System) and Custom (User) exercises
+model Exercise {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  type      String   // "strength" or "cardio"
+  bodyPart  String
+
+  // Optional: If null, it's a Global Exercise. If set, it's a Custom Exercise.
+  userId    String?  @db.ObjectId
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workoutLogs WorkoutLog[]
+}
+
+// --------------------------------------
+// 4. WORKOUT ROUTINES (TEMPLATES)
+// --------------------------------------
+
+model Template {
+  id        String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String             @db.ObjectId
+  user      User               @relation(fields: [userId], references: [id])
+  name      String
+  exercises TemplateExercise[]
+  createdAt DateTime           @default(now())
+}
+
+// Embedded type for exercises inside a template
+type TemplateExercise {
+  exerciseId String   @db.ObjectId
+  sets       Int?     // Default number of sets
+  reps       Int?     // Target reps
+}
+
+// --------------------------------------
+// 5. WORKOUT LOGGING (SESSIONS)
+// --------------------------------------
+
+// Represents a single workout session (e.g., "Monday Chest Day")
+model Workout {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String       @db.ObjectId
+  user      User         @relation(fields: [userId], references: [id])
+  name      String       @default("Daily Workout")
+  date      DateTime     @default(now())
+  exercises WorkoutLog[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+// Represents a specific exercise performed within a workout session
+model WorkoutLog {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  workoutId      String   @db.ObjectId
+  workout        Workout  @relation(fields: [workoutId], references: [id])
+  exerciseId     String   @db.ObjectId
+  exercise       Exercise @relation(fields: [exerciseId], references: [id])
+  
+  // Strength Data
+  sets           Set[]    
+  
+  // Cardio Data
+  cardioTime     Int?
+  cardioDistance Float?
+  cardioCalories Int?
+  cardioIncline  Float?
+  cardioSpeed    Float?
+}
+
+// Embedded type for individual sets
+type Set {
+  setNumber Int
+  weight    Float
+  reps      Int
+}
