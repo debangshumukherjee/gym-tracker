@@ -7,6 +7,7 @@ import { format, parseISO, isToday, isYesterday } from 'date-fns';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid 
 } from 'recharts';
+import { API_URL } from '../config';
 
 const History = () => {
   // ---------------------------------------------------------------------------
@@ -31,7 +32,7 @@ const History = () => {
   const fetchHistory = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/workouts', {
+      const res = await fetch(`${API_URL}/api/workouts`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -64,7 +65,7 @@ const History = () => {
   const deleteSession = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/workouts/${id}`, {
+      const res = await fetch(`${API_URL}/api/workouts/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -88,7 +89,7 @@ const History = () => {
   const deleteExercise = async (workoutId, logId) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/workouts/${workoutId}/exercises/${logId}`, {
+      const res = await fetch(`${API_URL}/api/workouts/${workoutId}/exercises/${logId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -342,7 +343,7 @@ const EditExerciseModal = ({ data, onClose, onSuccess }) => {
     setLoading(true);
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:5000/api/workouts/${data.workoutId}/exercises/${data.id}`, {
+        const res = await fetch(`${API_URL}/api/workouts/${data.workoutId}/exercises/${data.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(formData)
@@ -431,7 +432,7 @@ const ExerciseStatsModal = ({ exercise, onClose }) => {
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/workouts', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(`${API_URL}/api/workouts`, { headers: { Authorization: `Bearer ${token}` } });
         const allWorkouts = await res.json();
         
         // Transform data for chart

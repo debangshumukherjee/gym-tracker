@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Loader2, ShieldCheck, RefreshCw } from 'lucide-react';
+import { API_URL } from '../config';
 
 const VerifyOTP = () => {
   const { state } = useLocation();
@@ -44,7 +45,7 @@ const VerifyOTP = () => {
     setError("");
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/verify-otp', {
+      const res = await fetch(`${API_URL}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: state?.email, otp })
@@ -73,7 +74,7 @@ const VerifyOTP = () => {
     setCanResend(false);
     
     try {
-      await fetch('http://localhost:5000/api/auth/resend-otp', {
+      await fetch(`${API_URL}/api/auth/resend-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: state?.email })

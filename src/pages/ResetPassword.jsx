@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Loader2, KeyRound, Mail, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const ResetPassword = () => {
     setLoading(true);
     
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/resetpassword`, {
+      const res = await fetch(`${API_URL}/api/auth/resetpassword`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, password })

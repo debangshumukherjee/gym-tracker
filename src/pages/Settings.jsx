@@ -8,6 +8,7 @@ import { format, parseISO } from 'date-fns';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid 
 } from 'recharts';
+import { API_URL } from '../config';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ const Settings = () => {
             return; 
         }
 
-        const res = await fetch('http://localhost:5000/api/auth/me', { 
+        const res = await fetch(`${API_URL}/api/auth/me`, { 
             headers: { 'Authorization': `Bearer ${token}` } 
         });
         const data = await res.json();
@@ -104,7 +105,7 @@ const Settings = () => {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/auth/profile', {
+      const res = await fetch(`${API_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(formData)
@@ -128,7 +129,7 @@ const Settings = () => {
     setLoggingWeight(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/auth/weight', {
+      const res = await fetch(`${API_URL}/api/auth/weight`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(weightLog)
@@ -152,7 +153,7 @@ const Settings = () => {
     setDeleteLoading(true);
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/auth/delete-initiate', {
+        const res = await fetch(`${API_URL}/api/auth/delete-initiate`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -173,7 +174,7 @@ const Settings = () => {
     setDeleteLoading(true);
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/auth/delete-confirm', {
+        const res = await fetch(`${API_URL}/api/auth/delete-confirm`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ otp: deleteOtp })

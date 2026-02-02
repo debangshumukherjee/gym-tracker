@@ -13,6 +13,7 @@ import {
   eachMonthOfInterval 
 } from 'date-fns';
 import clsx from 'clsx';
+import { API_URL } from '../config';
 
 // --- HELPER FUNCTIONS ---
 
@@ -65,7 +66,7 @@ const Dashboard = () => {
            return;
         }
 
-        const res = await fetch('http://localhost:5000/api/workouts', {
+        const res = await fetch(`${API_URL}/api/workouts`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         

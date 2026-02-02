@@ -4,6 +4,7 @@ import {
   FolderOpen, Loader2, X, CheckCircle, AlertCircle 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const LogWorkout = () => {
   const navigate = useNavigate();
@@ -43,8 +44,8 @@ const LogWorkout = () => {
       try {
         const token = localStorage.getItem('token');
         const [exRes, tempRes] = await Promise.all([
-          fetch('http://localhost:5000/api/exercises', { headers: { Authorization: `Bearer ${token}` } }),
-          fetch('http://localhost:5000/api/templates', { headers: { Authorization: `Bearer ${token}` } })
+          fetch(`${API_URL}/api/exercises`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_URL}/api/templates`, { headers: { Authorization: `Bearer ${token}` } })
         ]);
 
         if (exRes.ok) setAllExercises(await exRes.json());
@@ -122,7 +123,7 @@ const LogWorkout = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/workouts/latest', {
+      const res = await fetch(`${API_URL}/api/workouts/latest`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();

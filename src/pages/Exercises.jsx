@@ -7,6 +7,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid 
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
+import { API_URL } from '../config';
 
 // --- CONSTANTS ---
 const CATEGORIES = ['All', 'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs', 'Cardio', 'Other'];
@@ -56,7 +57,7 @@ const Exercises = () => {
         }
       }
 
-      const res = await fetch('http://localhost:5000/api/exercises', {
+      const res = await fetch(`${API_URL}/api/exercises`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -91,7 +92,7 @@ const Exercises = () => {
   const executeDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/exercises/${id}`, {
+      const res = await fetch(`${API_URL}/api/exercises/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -323,7 +324,7 @@ const CreateExerciseModal = ({ onClose, onSuccess, initialData, isEditMode }) =>
       const payload = { ...formData, type: formData.bodyPart === 'Cardio' ? 'cardio' : 'strength' };
       try {
         const token = localStorage.getItem('token');
-        const url = isEditMode ? `http://localhost:5000/api/exercises/${initialData.id}` : 'http://localhost:5000/api/exercises';
+        const url = isEditMode ? `${API_URL}/api/exercises/${initialData.id}` : `${API_URL}/api/exercises`;
         const method = isEditMode ? 'PUT' : 'POST';
         const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
         const data = await res.json();
@@ -370,7 +371,7 @@ const ExerciseStatsModal = ({ exercise, onClose }) => {
       const fetchHistory = async () => {
         try {
           const token = localStorage.getItem('token');
-          const res = await fetch('http://localhost:5000/api/workouts', { headers: { Authorization: `Bearer ${token}` } });
+          const res = await fetch(`${API_URL}/api/workouts`, { headers: { Authorization: `Bearer ${token}` } });
           const allWorkouts = await res.json();
           
           const stats = allWorkouts.map(workout => {
