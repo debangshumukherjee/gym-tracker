@@ -70,7 +70,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen, darkMode, toggleTheme }) => {
           <h2 className='text-2xl font-black text-blue-600 dark:text-blue-500 flex items-center gap-2'>
             <div className='w-12 h-12 rounded-[5px] flex items-center justify-center mx-auto mb-4 shadow-lg'>
               <img
-                src='/public/favicon.png'
+                src='/favicon.png'
                 alt='favicon'
                 className='w-8 h-8 rounded-[5px] object-cover'
               />

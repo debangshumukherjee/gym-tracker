@@ -116,7 +116,7 @@ const Login = () => {
         <div className='bg-blue-600 dark:bg-blue-700 p-8 text-center text-white'>
           <div className='w-12 h-12 bg-blue-600 rounded-md flex items-center justify-center mx-auto mb-4 shadow-lg'>
             <img
-              src='/public/favicon.png'
+              src='/favicon.png'
               alt='favicon'
               className='w-8 h-8 rounded-md object-cover'
             />
