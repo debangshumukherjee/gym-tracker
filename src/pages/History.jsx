@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Trash2, Calendar, Clock, Loader2, TrendingUp, X, Trophy, 
-  Timer, Flame, Ruler, Edit2, Save, Plus, AlertTriangle, AlertCircle 
+  Timer, Edit2, Save, Plus, AlertTriangle, AlertCircle, ChevronDown, Activity
 } from 'lucide-react';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
 import { 
@@ -9,10 +9,10 @@ import {
 } from 'recharts';
 import { API_URL } from '../config';
 
+// -----------------------------------------------------------------------------
+// MAIN COMPONENT: History
+// -----------------------------------------------------------------------------
 const History = () => {
-  // ---------------------------------------------------------------------------
-  // STATE MANAGEMENT
-  // ---------------------------------------------------------------------------
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -25,10 +25,7 @@ const History = () => {
     isOpen: false, title: "", message: "", type: "danger", onConfirm: null 
   });
 
-  // ---------------------------------------------------------------------------
-  // DATA FETCHING
-  // ---------------------------------------------------------------------------
-
+  // --- DATA FETCHING ---
   const fetchHistory = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -46,13 +43,9 @@ const History = () => {
 
   useEffect(() => { fetchHistory(); }, []);
 
-  // ---------------------------------------------------------------------------
-  // HANDLERS (Delete & Update)
-  // ---------------------------------------------------------------------------
+  // --- HANDLERS ---
 
-  // 1. Delete Entire Session
-  const requestDeleteSession = (id, e) => {
-    e.stopPropagation();
+  const requestDeleteSession = (id) => {
     setConfirmModal({
         isOpen: true,
         title: "Delete Session?",
@@ -74,9 +67,7 @@ const History = () => {
     setConfirmModal({ ...confirmModal, isOpen: false });
   };
 
-  // 2. Remove Single Exercise from Session
-  const requestDeleteExercise = (workoutId, logId, e) => {
-    e.stopPropagation();
+  const requestDeleteExercise = (workoutId, logId) => {
     setConfirmModal({
         isOpen: true,
         title: "Remove Exercise?",
@@ -97,10 +88,8 @@ const History = () => {
       const data = await res.json();
       if (res.ok) {
         if (data.isEmpty) {
-            // If workout is empty, remove the whole session locally
             setWorkouts(prev => prev.filter(w => w.id !== workoutId));
         } else {
-            // Otherwise just remove the exercise
             setWorkouts(prev => prev.map(w => {
                 if (w.id === workoutId) {
                     return { ...w, exercises: w.exercises.filter(ex => ex.id !== logId) };
@@ -113,7 +102,7 @@ const History = () => {
     setConfirmModal({ ...confirmModal, isOpen: false });
   };
 
-  // 3. Group Workouts Helper
+  // Group Workouts Helper
   const groupWorkoutsByDate = (list) => {
     const groups = {};
     list.forEach(workout => {
@@ -121,22 +110,17 @@ const History = () => {
       if (!groups[dateKey]) groups[dateKey] = [];
       groups[dateKey].push(workout);
     });
-    // Sort descending (newest first)
     return Object.entries(groups).sort((a, b) => new Date(b[0]) - new Date(a[0]));
   };
 
   const groupedHistory = groupWorkoutsByDate(workouts);
-
-  // ---------------------------------------------------------------------------
-  // RENDER
-  // ---------------------------------------------------------------------------
 
   if (loading) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin text-blue-600" size={32} /></div>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
+    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20 p-4">
       
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -155,81 +139,23 @@ const History = () => {
       ) : (
         groupedHistory.map(([dateKey, sessionList]) => (
           <div key={dateKey} className="space-y-3">
-            {/* Date Header (Sticky) */}
+            {/* Sticky Date Header */}
             <h2 className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-2 sticky top-0 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-sm py-2 z-10 transition-colors">
               <Calendar size={14} /> 
               {isToday(parseISO(dateKey)) ? "Today" : isYesterday(parseISO(dateKey)) ? "Yesterday" : format(parseISO(dateKey), "EEEE, MMMM do")}
             </h2>
 
-            {/* Session Cards */}
+            {/* Session Cards (Accordion Style) */}
             <div className="grid gap-3">
               {sessionList.map((workout) => (
-                <div key={workout.id} className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-bold text-gray-800 dark:text-white text-lg flex items-center gap-2">{workout.name}</h3>
-                      <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-1"><Clock size={12} /> {format(parseISO(workout.date), 'h:mm a')}</div>
-                    </div>
-                    {/* Delete Session */}
-                    <button onClick={(e) => requestDeleteSession(workout.id, e)} className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition" title="Delete Session">
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-
-                  {/* Exercises List */}
-                  <div className="space-y-2">
-                    {workout.exercises && workout.exercises.map((log, i) => {
-                      const isCardio = log.exercise?.bodyPart === 'Cardio' || log.exercise?.type === 'cardio';
-                      return (
-                        <div key={i} className="w-full flex items-center justify-between text-sm p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700 group hover:border-blue-200 dark:hover:border-blue-500/30 transition-colors">
-                          
-                          {/* Exercise Info (Clickable for Stats) */}
-                          <div 
-                             onClick={() => setStatsModalData({ id: log.exerciseId, name: log.exercise?.name, type: isCardio ? 'cardio' : 'strength' })}
-                             className="flex items-center gap-3 cursor-pointer flex-1"
-                          >
-                            <div className={`p-1.5 rounded-lg transition ${isCardio ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' : 'bg-white dark:bg-gray-600 text-gray-400 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}>
-                               {isCardio ? <Timer size={14} /> : <TrendingUp size={14} />}
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="font-bold text-gray-700 dark:text-gray-200 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{log.exercise?.name}</span>
-                                <div className="flex gap-2 text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5">
-                                    {isCardio ? (
-                                        <>
-                                            {log.cardioDistance > 0 && <span>{log.cardioDistance}km</span>}
-                                            {log.cardioTime > 0 && <span>{log.cardioTime}m</span>}
-                                            {!log.cardioDistance && !log.cardioTime && <span>Cardio</span>}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>{log.sets.length} Sets</span>
-                                            <span className="font-bold text-gray-800 dark:text-gray-300">{Math.max(...log.sets.map(s => s.weight || 0))}kg Max</span>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                             <button 
-                                onClick={() => setEditModalData({ ...log, workoutId: workout.id })}
-                                className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                             >
-                                <Edit2 size={16} />
-                             </button>
-                             <button 
-                                onClick={(e) => requestDeleteExercise(workout.id, log.id, e)}
-                                className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                             >
-                                <Trash2 size={16} />
-                             </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                <WorkoutSessionCard 
+                  key={workout.id} 
+                  workout={workout}
+                  onDeleteSession={() => requestDeleteSession(workout.id)}
+                  onDeleteExercise={(logId) => requestDeleteExercise(workout.id, logId)}
+                  onEdit={(log) => setEditModalData({ ...log, workoutId: workout.id })}
+                  onStats={(log) => setStatsModalData({ id: log.exerciseId, name: log.exercise?.name, type: (log.exercise?.bodyPart === 'Cardio' || log.exercise?.type === 'cardio') ? 'cardio' : 'strength' })}
+                />
               ))}
             </div>
           </div>
@@ -257,6 +183,110 @@ const History = () => {
                fetchHistory(); 
            }}
          />
+      )}
+    </div>
+  );
+};
+
+// -----------------------------------------------------------------------------
+// COMPONENT: Workout Session Card (Accordion)
+// -----------------------------------------------------------------------------
+const WorkoutSessionCard = ({ workout, onDeleteSession, onDeleteExercise, onEdit, onStats }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-all duration-300">
+      
+      {/* Accordion Header */}
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+      >
+        <div className="flex items-center gap-4">
+            <div className={`p-3 rounded-full ${isOpen ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'} transition-colors`}>
+                <Activity size={20} />
+            </div>
+            <div>
+                <h3 className="font-bold text-gray-800 dark:text-white text-lg">{workout.name || "Untitled Workout"}</h3>
+                <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-0.5">
+                    <Clock size={12} /> {format(parseISO(workout.date), 'h:mm a')}
+                    <span className="mx-1">•</span>
+                    <span>{workout.exercises?.length || 0} Exercises</span>
+                </div>
+            </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+            {/* Delete Session Button (Stop Propagation prevents toggling) */}
+            <button 
+                onClick={(e) => { e.stopPropagation(); onDeleteSession(); }} 
+                className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition" 
+                title="Delete Session"
+            >
+                <Trash2 size={18} />
+            </button>
+            
+            {/* Chevron Icon */}
+            <div className={`transform transition-transform duration-300 text-gray-400 ${isOpen ? 'rotate-180' : ''}`}>
+                <ChevronDown size={20} />
+            </div>
+        </div>
+      </div>
+
+      {/* Accordion Body (Exercises) */}
+      {isOpen && (
+        <div className="border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 p-4 space-y-2 animate-fade-in">
+          {workout.exercises && workout.exercises.map((log, i) => {
+            const isCardio = log.exercise?.bodyPart === 'Cardio' || log.exercise?.type === 'cardio';
+            return (
+              <div key={i} className="w-full flex items-center justify-between text-sm p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm group hover:border-blue-200 dark:hover:border-blue-500/30 transition-colors">
+                
+                {/* Exercise Info (Clickable for Stats) */}
+                <div 
+                   onClick={() => onStats(log)}
+                   className="flex items-center gap-3 cursor-pointer flex-1"
+                >
+                  <div className={`p-1.5 rounded-lg transition ${isCardio ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}>
+                     {isCardio ? <Timer size={14} /> : <TrendingUp size={14} />}
+                  </div>
+                  <div className="flex flex-col">
+                      <span className="font-bold text-gray-700 dark:text-gray-200 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{log.exercise?.name}</span>
+                      <div className="flex gap-2 text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5">
+                          {isCardio ? (
+                              <>
+                                  {log.cardioDistance > 0 && <span>{log.cardioDistance}km</span>}
+                                  {log.cardioTime > 0 && <span>{log.cardioTime}m</span>}
+                                  {!log.cardioDistance && !log.cardioTime && <span>Cardio</span>}
+                              </>
+                          ) : (
+                              <>
+                                  <span>{log.sets.length} Sets</span>
+                                  <span className="font-bold text-gray-800 dark:text-gray-300">{Math.max(...log.sets.map(s => s.weight || 0))}kg Max</span>
+                              </>
+                          )}
+                      </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <button 
+                      onClick={() => onEdit(log)}
+                      className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                   >
+                       <Edit2 size={16} />
+                   </button>
+                   <button 
+                      onClick={(e) => { e.stopPropagation(); onDeleteExercise(log.id); }}
+                      className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                   >
+                       <Trash2 size={16} />
+                   </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
@@ -451,7 +481,7 @@ const ExerciseStatsModal = ({ exercise, onClose }) => {
 
   const personalBest = history.length > 0 ? Math.max(...history.map(h => h.value)) : 0;
   const recentVal = history.length > 0 ? history[history.length - 1].value : 0;
-  const unit = isCardio ? 'km/min' : 'kg';
+  const unit = isCardio ? 'km' : 'kg';
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
@@ -469,7 +499,6 @@ const ExerciseStatsModal = ({ exercise, onClose }) => {
               </div>
               
               {/* Chart Visualization */}
-              {/*  */}
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={history}>
