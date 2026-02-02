@@ -77,7 +77,7 @@ exports.register = async (req, res) => {
 
     res.status(201).json({ message: 'Registration successful. Please check your email for OTP.' });
   } catch (error) {
-    console.error("Register Error:", error);
+    // //console.error("Register Error:", error);
     res.status(500).json({ message: 'Server error during registration' });
   }
 };
@@ -107,7 +107,7 @@ exports.verifyOTP = async (req, res) => {
 
     res.json({ message: "Email verified successfully! You can now log in." });
   } catch (error) {
-    console.error("Verify OTP Error:", error);
+    //console.error("Verify OTP Error:", error);
     res.status(500).json({ message: "Error verifying OTP" });
   }
 };
@@ -146,7 +146,7 @@ exports.resendOTP = async (req, res) => {
 
     res.json({ message: "New OTP sent to your email!" });
   } catch (error) {
-    console.error("Resend OTP Error:", error);
+    //console.error("Resend OTP Error:", error);
     res.status(500).json({ message: "Error resending OTP" });
   }
 };
@@ -176,7 +176,7 @@ exports.loginUser = async (req, res) => {
       token: generateToken(user.id),
     });
   } catch (error) {
-    console.error("Login Error:", error);
+    //console.error("Login Error:", error);
     res.status(500).json({ message: 'Server error during login' });
   }
 };
@@ -209,7 +209,7 @@ exports.getMe = async (req, res) => {
       age: calculateAge(user.dateOfBirth)
     });
   } catch (error) {
-    console.error("GetMe Error:", error);
+    //console.error("GetMe Error:", error);
     res.status(500).json({ message: "Error fetching profile" });
   }
 };
@@ -234,7 +234,7 @@ exports.updateProfile = async (req, res) => {
 
     res.json({ message: "Profile updated", user: updatedUser });
   } catch (error) {
-    console.error("Update Profile Error:", error);
+    //console.error("Update Profile Error:", error);
     res.status(500).json({ message: "Update failed" });
   }
 };
@@ -351,7 +351,7 @@ exports.updateWeight = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Update Weight Error:", error);
+    //console.error("Update Weight Error:", error);
     res.status(500).json({ message: "Error updating weight" });
   }
 };
@@ -396,7 +396,7 @@ exports.forgotPassword = async (req, res) => {
 
     res.json({ message: "OTP sent to your email" });
   } catch (error) {
-    console.error("Forgot Password Error:", error);
+    //console.error("Forgot Password Error:", error);
     res.status(500).json({ message: "Failed to send email" });
   }
 };
@@ -428,7 +428,7 @@ exports.resetPassword = async (req, res) => {
 
     res.json({ message: "Password updated successfully!" });
   } catch (error) {
-    console.error("Reset Password Error:", error);
+    //console.error("Reset Password Error:", error);
     res.status(500).json({ message: "Error resetting password" });
   }
 };
@@ -472,7 +472,7 @@ exports.initiateDeleteAccount = async (req, res) => {
 
     res.json({ message: "OTP sent to your email." });
   } catch (error) {
-    console.error("Delete Initiate Error:", error);
+    //console.error("Delete Initiate Error:", error);
     res.status(500).json({ message: "Failed to send OTP" });
   }
 };
@@ -502,7 +502,7 @@ exports.confirmDeleteAccount = async (req, res) => {
 
     res.json({ message: "Account and all data deleted successfully" });
   } catch (error) {
-    console.error("Delete Confirm Error:", error);
+    //console.error("Delete Confirm Error:", error);
     res.status(500).json({ message: "Delete failed" });
   }
 };

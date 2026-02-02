@@ -88,7 +88,7 @@ const Dashboard = () => {
         }
 
       } catch (error) {
-        console.error("Network Error:", error);
+        //console.error("Network Error:", error);
       } finally {
         setLoading(false);
       }

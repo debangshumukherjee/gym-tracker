@@ -69,7 +69,7 @@ const STANDARD_EXERCISES = [
 ];
 
 async function main() {
-  console.log('🌱 Start seeding...');
+  //console.log('🌱 Start seeding...');
   
   // ---------------------------------------------------------
   // 1. SEED EXERCISES
@@ -83,13 +83,13 @@ async function main() {
     data: STANDARD_EXERCISES
   });
 
-  console.log(`✅ Seeded ${STANDARD_EXERCISES.length} system exercises.`);
+  //console.log(`✅ Seeded ${STANDARD_EXERCISES.length} system exercises.`);
 
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    //console.error(e);
     process.exit(1);
   })
   .finally(async () => {

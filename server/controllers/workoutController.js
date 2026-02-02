@@ -107,7 +107,7 @@ exports.createWorkout = async (req, res) => {
     res.status(201).json(result);
 
   } catch (error) {
-    console.error("Error saving workout:", error);
+    //console.error("Error saving workout:", error);
     res.status(500).json({ message: "Failed to save workout", error: error.message });
   }
 };
@@ -132,7 +132,7 @@ exports.getWorkouts = async (req, res) => {
 
     res.json(workouts);
   } catch (error) {
-    console.error("Error fetching history:", error);
+    //console.error("Error fetching history:", error);
     res.status(500).json({ message: "Error fetching history" });
   }
 };
@@ -274,7 +274,7 @@ exports.getLatestWorkout = async (req, res) => {
     res.json({ exercises: formattedExercises, name: latest.name });
 
   } catch (error) {
-    console.error("Get Latest Error:", error);
+    //console.error("Get Latest Error:", error);
     res.status(500).json({ message: "Error fetching latest workout" });
   }
 };

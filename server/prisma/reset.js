@@ -11,10 +11,10 @@ async function main() {
     // Delete all exercises
     const deleted = await prisma.exercise.deleteMany({});
     
-    console.log(`Deleted ${deleted.count} exercises.`);
+    //console.log(`Deleted ${deleted.count} exercises.`);
 
   } catch (error) {
-    console.error("Error resetting database:", error);
+    //console.error("Error resetting database:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();

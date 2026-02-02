@@ -10,14 +10,14 @@ async function main() {
   try {
     // 1. Delete all Workout Logs first (Child records)
     const deletedLogs = await prisma.workoutLog.deleteMany({});
-    console.log(`Deleted ${deletedLogs.count} workout logs.`);
+    //console.log(`Deleted ${deletedLogs.count} workout logs.`);
 
     // 2. Delete all Workouts (Parent records)
     const deletedWorkouts = await prisma.workout.deleteMany({});
-    console.log(`Deleted ${deletedWorkouts.count} workouts.`);
+    //console.log(`Deleted ${deletedWorkouts.count} workouts.`);
 
   } catch (error) {
-    console.error("Error cleaning database:", error);
+    //console.error("Error cleaning database:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 
 // --- LAYOUTS ---
@@ -17,6 +17,7 @@ import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import VerifyOTP from './pages/VerifyOTP';
+import Footer from './components/Footer';
 
 // -----------------------------------------------------------------------------
 // ROUTE GUARDS
@@ -45,6 +46,12 @@ const PublicRoute = () => {
 // -----------------------------------------------------------------------------
 
 function App() {
+  useEffect(() => {
+    console.log(
+      "%c Built by Debangshu Mukherjee 🚀 ",
+      "background: #222; color: #bada55; font-size: 20px; padding: 10px; border-radius: 5px;"
+    );
+  }, []);
   return (
     <BrowserRouter>
       <Routes>
@@ -73,6 +80,7 @@ function App() {
         <Route path="*" element={<Navigate to="/login" />} />
 
       </Routes>
+      <Footer />
     </BrowserRouter>
   );
 }

@@ -36,7 +36,7 @@ exports.createTemplate = async (req, res) => {
     res.status(201).json(template);
 
   } catch (error) {
-    console.error("Create Template Error:", error);
+    //console.error("Create Template Error:", error);
     res.status(500).json({ message: "Failed to save template", error: error.message });
   }
 };
@@ -55,7 +55,7 @@ exports.getTemplates = async (req, res) => {
 
     res.json(templates);
   } catch (error) {
-    console.error("Get Templates Error:", error);
+    //console.error("Get Templates Error:", error);
     res.status(500).json({ message: "Failed to fetch templates" });
   }
 };
@@ -72,7 +72,7 @@ exports.deleteTemplate = async (req, res) => {
     
     res.json({ message: "Template deleted" });
   } catch (error) {
-    console.error("Delete Template Error:", error);
+    //console.error("Delete Template Error:", error);
     res.status(500).json({ message: "Error deleting template" });
   }
 };
