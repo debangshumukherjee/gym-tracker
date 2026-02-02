@@ -1,4 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+/** @format */
+
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 /**
@@ -10,14 +12,14 @@ exports.getExercises = async (req, res) => {
     const exercises = await prisma.exercise.findMany({
       where: {
         OR: [
-          { userId: null },            // 1. Global Exercises (System default)
+          { userId: null }, // 1. Global Exercises (System default)
           { userId: { isSet: false } }, // Handle potential MongoDB unset fields
-          { userId: req.user.id }      // 2. Custom exercises created by THIS user
-        ]
+          { userId: req.user.id }, // 2. Custom exercises created by THIS user
+        ],
       },
-      orderBy: { name: 'asc' }
+      orderBy: { name: "asc" },
     });
-    
+
     res.json(exercises);
   } catch (error) {
     res.status(500).json({ message: "Error fetching exercises" });
@@ -31,14 +33,9 @@ exports.getExercises = async (req, res) => {
 exports.createExercise = async (req, res) => {
   try {
     const { name, bodyPart, type } = req.body;
-    
+
     const exercise = await prisma.exercise.create({
-      data: {
-        name,
-        bodyPart,
-        type,
-        userId: req.user.id
-      }
+      data: { name, bodyPart, type, userId: req.user.id },
     });
 
     res.status(201).json(exercise);
@@ -55,17 +52,19 @@ exports.updateExercise = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, bodyPart, type } = req.body;
-    
+
     const existing = await prisma.exercise.findUnique({ where: { id } });
-    
+
     // Authorization Check: Ensure user owns this exercise
     if (!existing || existing.userId !== req.user.id) {
-        return res.status(403).json({ message: "You can only edit your own custom exercises" });
+      return res
+        .status(403)
+        .json({ message: "You can only edit your own custom exercises" });
     }
 
     const updated = await prisma.exercise.update({
       where: { id },
-      data: { name, bodyPart, type }
+      data: { name, bodyPart, type },
     });
 
     res.json(updated);
@@ -85,17 +84,26 @@ exports.deleteExercise = async (req, res) => {
 
     // Authorization Check: Ensure user owns this exercise
     if (!existing || existing.userId !== req.user.id) {
-        return res.status(403).json({ message: "You can only delete your own custom exercises" });
+      return res
+        .status(403)
+        .json({ message: "You can only delete your own custom exercises" });
     }
 
     // Safety Check: Prevent deletion if exercise has history data
-    const usageCount = await prisma.workoutLog.count({ where: { exerciseId: id } });
+    const usageCount = await prisma.workoutLog.count({
+      where: { exerciseId: id },
+    });
     if (usageCount > 0) {
-        return res.status(400).json({ message: "Cannot delete this exercise because it is used in your workout history." });
+      return res
+        .status(400)
+        .json({
+          message:
+            "Cannot delete this exercise because it is used in your workout history.",
+        });
     }
 
     await prisma.exercise.delete({ where: { id } });
-    
+
     res.json({ message: "Exercise deleted" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting exercise" });

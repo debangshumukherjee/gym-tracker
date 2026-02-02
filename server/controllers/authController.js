@@ -1,8 +1,10 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const sendEmail = require('../utils/sendEmail');
+/** @format */
+
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendEmail");
 
 const prisma = new PrismaClient();
 
@@ -12,7 +14,7 @@ const prisma = new PrismaClient();
  * Generates a JWT token for authenticated sessions.
  */
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
 };
 
 /**
@@ -38,7 +40,7 @@ exports.register = async (req, res) => {
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     // Hash password and generate OTP
@@ -59,9 +61,9 @@ exports.register = async (req, res) => {
     });
 
     // Send Verification Email
-    await sendEmail({ 
-      to: email, 
-      subject: 'Verify Your Gym Tracker Account', 
+    await sendEmail({
+      to: email,
+      subject: "Verify Your Gym Tracker Account",
       text: `
         <div style="font-family: sans-serif; max-width: 500px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
           <h2 style="color: #2563eb;">Welcome to Gym Tracker!</h2>
@@ -72,13 +74,17 @@ exports.register = async (req, res) => {
           </div>
           <p style="font-size: 12px; color: #6b7280;">This code will expire in 10 minutes.</p>
         </div>
-      ` 
+      `,
     });
 
-    res.status(201).json({ message: 'Registration successful. Please check your email for OTP.' });
+    res
+      .status(201)
+      .json({
+        message: "Registration successful. Please check your email for OTP.",
+      });
   } catch (error) {
     // //console.error("Register Error:", error);
-    res.status(500).json({ message: 'Server error during registration' });
+    res.status(500).json({ message: "Server error during registration" });
   }
 };
 
@@ -89,10 +95,10 @@ exports.register = async (req, res) => {
 exports.verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    
+
     // Find user with matching OTP that hasn't expired
     const user = await prisma.user.findFirst({
-      where: { email, otp, otpExpires: { gt: new Date() } }
+      where: { email, otp, otpExpires: { gt: new Date() } },
     });
 
     if (!user) {
@@ -102,7 +108,7 @@ exports.verifyOTP = async (req, res) => {
     // Activate user
     await prisma.user.update({
       where: { id: user.id },
-      data: { isVerified: true, otp: null, otpExpires: null }
+      data: { isVerified: true, otp: null, otpExpires: null },
     });
 
     res.json({ message: "Email verified successfully! You can now log in." });
@@ -122,26 +128,27 @@ exports.resendOTP = async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) return res.status(404).json({ message: "User not found" });
-    if (user.isVerified) return res.status(400).json({ message: "Email already verified" });
+    if (user.isVerified)
+      return res.status(400).json({ message: "Email already verified" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = new Date(Date.now() + 10 * 60000);
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { otp, otpExpires }
+      data: { otp, otpExpires },
     });
 
     await sendEmail({
       to: email,
-      subject: 'New Verification Code',
+      subject: "New Verification Code",
       text: `
         <div style="font-family: sans-serif; padding: 20px;">
            <h2>New Code Requested</h2>
            <p>Here is your new verification code:</p>
            <h1>${otp}</h1>
         </div>
-      `
+      `,
     });
 
     res.json({ message: "New OTP sent to your email!" });
@@ -160,13 +167,16 @@ exports.loginUser = async (req, res) => {
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid credentials" });
 
     if (!user.isVerified) {
-      return res.status(403).json({ message: 'Please verify your email address first.' });
+      return res
+        .status(403)
+        .json({ message: "Please verify your email address first." });
     }
 
     res.json({
@@ -177,7 +187,7 @@ exports.loginUser = async (req, res) => {
     });
   } catch (error) {
     //console.error("Login Error:", error);
-    res.status(500).json({ message: 'Server error during login' });
+    res.status(500).json({ message: "Server error during login" });
   }
 };
 
@@ -189,25 +199,23 @@ exports.getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { 
-        id: true, name: true, email: true, createdAt: true, isVerified: true,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        isVerified: true,
         dateOfBirth: true,
         height: true,
         currentWeight: true,
         gender: true,
-        weightHistory: {
-          orderBy: { date: 'asc' },
-          take: 20
-        }
-      }
+        weightHistory: { orderBy: { date: "asc" }, take: 20 },
+      },
     });
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.json({
-      ...user,
-      age: calculateAge(user.dateOfBirth)
-    });
+    res.json({ ...user, age: calculateAge(user.dateOfBirth) });
   } catch (error) {
     //console.error("GetMe Error:", error);
     res.status(500).json({ message: "Error fetching profile" });
@@ -220,16 +228,16 @@ exports.getMe = async (req, res) => {
  */
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, dateOfBirth, height, gender } = req.body; 
-    
+    const { name, dateOfBirth, height, gender } = req.body;
+
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
       data: {
         name,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
         height: height ? parseFloat(height) : undefined,
-        gender
-      }
+        gender,
+      },
     });
 
     res.json({ message: "Profile updated", user: updatedUser });
@@ -251,7 +259,9 @@ exports.verifyEmailChange = async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user.newEmail || !user.newEmailOtp) {
-      return res.status(400).json({ message: "No pending email change found." });
+      return res
+        .status(400)
+        .json({ message: "No pending email change found." });
     }
 
     if (user.newEmailOtp !== otp || new Date() > user.newEmailOtpExpires) {
@@ -265,13 +275,12 @@ exports.verifyEmailChange = async (req, res) => {
         email: user.newEmail,
         newEmail: null,
         newEmailOtp: null,
-        newEmailOtpExpires: null
+        newEmailOtpExpires: null,
       },
-      select: { id: true, name: true, email: true }
+      select: { id: true, name: true, email: true },
     });
 
     res.json({ message: "Email updated successfully!", user: updatedUser });
-
   } catch (error) {
     res.status(500).json({ message: "Error verifying email change" });
   }
@@ -295,7 +304,9 @@ exports.updateWeight = async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     if (targetDate > today) {
-      return res.status(400).json({ message: "You cannot log weight for a future date." });
+      return res
+        .status(400)
+        .json({ message: "You cannot log weight for a future date." });
     }
 
     const startOfDay = new Date(targetDate);
@@ -304,52 +315,44 @@ exports.updateWeight = async (req, res) => {
 
     // Upsert Logic (Update if exists, else Create)
     const existingEntry = await prisma.weightHistory.findFirst({
-      where: {
-        userId,
-        date: { gte: startOfDay, lte: endOfDay }
-      }
+      where: { userId, date: { gte: startOfDay, lte: endOfDay } },
     });
 
     if (existingEntry) {
       await prisma.weightHistory.update({
         where: { id: existingEntry.id },
-        data: { weight: parseFloat(weight) }
+        data: { weight: parseFloat(weight) },
       });
     } else {
       await prisma.weightHistory.create({
-        data: {
-          userId,
-          weight: parseFloat(weight),
-          date: targetDate
-        }
+        data: { userId, weight: parseFloat(weight), date: targetDate },
       });
     }
 
     // Update User's current weight based on the latest entry
     const latestEntry = await prisma.weightHistory.findFirst({
       where: { userId },
-      orderBy: { date: 'desc' }
+      orderBy: { date: "desc" },
     });
 
     if (latestEntry) {
       await prisma.user.update({
         where: { id: userId },
-        data: { currentWeight: latestEntry.weight }
+        data: { currentWeight: latestEntry.weight },
       });
     }
 
     const history = await prisma.weightHistory.findMany({
       where: { userId },
-      orderBy: { date: 'asc' },
-      take: 20
+      orderBy: { date: "asc" },
+      take: 20,
     });
 
-    res.json({ 
-      message: "Weight log updated", 
+    res.json({
+      message: "Weight log updated",
       currentWeight: latestEntry?.weight,
-      weightHistory: history 
+      weightHistory: history,
     });
-
   } catch (error) {
     //console.error("Update Weight Error:", error);
     res.status(500).json({ message: "Error updating weight" });
@@ -371,27 +374,27 @@ exports.forgotPassword = async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); 
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { otp, otpExpires }
+      data: { otp, otpExpires },
     });
 
     await sendEmail({
-      to: user.email, 
-      subject: '🔐 Password Reset OTP',
+      to: user.email,
+      subject: "🔐 Password Reset OTP",
       text: `
         <div style="font-family: sans-serif; max-width: 500px; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
           <h2 style="color: #1f2937;">Reset Your Password</h2>
-          <p>Hi ${user.name || 'Athlete'},</p>
+          <p>Hi ${user.name || "Athlete"},</p>
           <p>You requested a password reset. Enter the code below to set a new password:</p>
           <div style="background: #f3f4f6; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
             <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #2563eb;">${otp}</span>
           </div>
           <p style="font-size: 12px; color: #6b7280;">This code expires in 10 minutes.</p>
         </div>
-      `
+      `,
     });
 
     res.json({ message: "OTP sent to your email" });
@@ -419,11 +422,7 @@ exports.resetPassword = async (req, res) => {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { 
-        password: hashedPassword, 
-        otp: null, 
-        otpExpires: null 
-      },
+      data: { password: hashedPassword, otp: null, otpExpires: null },
     });
 
     res.json({ message: "Password updated successfully!" });
@@ -439,9 +438,9 @@ exports.resetPassword = async (req, res) => {
  */
 exports.initiateDeleteAccount = async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({ 
+    const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { email: true, id: true, name: true } 
+      select: { email: true, id: true, name: true },
     });
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -451,23 +450,23 @@ exports.initiateDeleteAccount = async (req, res) => {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { otp, otpExpires }
+      data: { otp, otpExpires },
     });
 
     await sendEmail({
       to: user.email,
-      subject: '⚠️ Confirm Account Deletion',
+      subject: "⚠️ Confirm Account Deletion",
       text: `             
         <div style="font-family: sans-serif; max-width: 500px; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
           <h2 style="color: #ef4444;">Delete Your Account?</h2>
-          <p>Hi ${user.name || 'Athlete'},</p>
+          <p>Hi ${user.name || "Athlete"},</p>
           <p>You requested to delete your Gym Tracker account. Use the code below to confirm this action. <strong>This will permanently erase all your data.</strong></p>
           <div style="background: #f4f4f5; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
             <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #111827;">${otp}</span>
           </div>
           <p style="font-size: 12px; color: #6b7280;">This code expires in 10 minutes.</p>
         </div>
-      `
+      `,
     });
 
     res.json({ message: "OTP sent to your email." });
@@ -492,12 +491,12 @@ exports.confirmDeleteAccount = async (req, res) => {
 
     // Transaction to ensure complete cleanup or rollback
     await prisma.$transaction([
-      prisma.workoutLog.deleteMany({ where: { workout: { userId: user.id } } }), 
-      prisma.workout.deleteMany({ where: { userId: user.id } }), 
-      prisma.weightHistory.deleteMany({ where: { userId: user.id } }), 
-      prisma.template.deleteMany({ where: { userId: user.id } }), 
+      prisma.workoutLog.deleteMany({ where: { workout: { userId: user.id } } }),
+      prisma.workout.deleteMany({ where: { userId: user.id } }),
+      prisma.weightHistory.deleteMany({ where: { userId: user.id } }),
+      prisma.template.deleteMany({ where: { userId: user.id } }),
       prisma.exercise.deleteMany({ where: { userId: user.id } }), // Delete Custom Exercises
-      prisma.user.delete({ where: { id: user.id } }) 
+      prisma.user.delete({ where: { id: user.id } }),
     ]);
 
     res.json({ message: "Account and all data deleted successfully" });

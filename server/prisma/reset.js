@@ -1,4 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+/** @format */
+
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 /**
@@ -10,9 +12,8 @@ async function main() {
   try {
     // Delete all exercises
     const deleted = await prisma.exercise.deleteMany({});
-    
-    //console.log(`Deleted ${deleted.count} exercises.`);
 
+    //console.log(`Deleted ${deleted.count} exercises.`);
   } catch (error) {
     //console.error("Error resetting database:", error);
     process.exit(1);

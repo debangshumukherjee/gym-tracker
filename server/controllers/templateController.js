@@ -1,4 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+/** @format */
+
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 /**
@@ -25,19 +27,20 @@ exports.createTemplate = async (req, res) => {
       data: {
         userId: req.user.id,
         name,
-        exercises: exercises.map(ex => ({
+        exercises: exercises.map((ex) => ({
           exerciseId: ex.exerciseId,
-          sets: ex.sets ? ex.sets.length : 3, 
-          reps: 10 
-        }))
-      }
+          sets: ex.sets ? ex.sets.length : 3,
+          reps: 10,
+        })),
+      },
     });
 
     res.status(201).json(template);
-
   } catch (error) {
     //console.error("Create Template Error:", error);
-    res.status(500).json({ message: "Failed to save template", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to save template", error: error.message });
   }
 };
 
@@ -48,10 +51,8 @@ exports.createTemplate = async (req, res) => {
 exports.getTemplates = async (req, res) => {
   try {
     const userId = req.user.id;
-    
-    const templates = await prisma.template.findMany({
-      where: { userId }
-    });
+
+    const templates = await prisma.template.findMany({ where: { userId } });
 
     res.json(templates);
   } catch (error) {
@@ -67,9 +68,9 @@ exports.getTemplates = async (req, res) => {
 exports.deleteTemplate = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     await prisma.template.delete({ where: { id } });
-    
+
     res.json({ message: "Template deleted" });
   } catch (error) {
     //console.error("Delete Template Error:", error);

@@ -1,4 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+/** @format */
+
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const STANDARD_EXERCISES = [
@@ -24,7 +26,11 @@ const STANDARD_EXERCISES = [
   { name: "Rope Pushdown", type: "strength", bodyPart: "Triceps" },
   { name: "Straight Bar Pushdown", type: "strength", bodyPart: "Triceps" },
   { name: "Overhead Rope Extension", type: "strength", bodyPart: "Triceps" },
-  { name: "Overhead Dumbbell Extension", type: "strength", bodyPart: "Triceps" },
+  {
+    name: "Overhead Dumbbell Extension",
+    type: "strength",
+    bodyPart: "Triceps",
+  },
   { name: "Skull Crushers", type: "strength", bodyPart: "Triceps" },
   { name: "Dips", type: "strength", bodyPart: "Triceps" },
 
@@ -70,21 +76,18 @@ const STANDARD_EXERCISES = [
 
 async function main() {
   //console.log('🌱 Start seeding...');
-  
+
   // ---------------------------------------------------------
   // 1. SEED EXERCISES
   // ---------------------------------------------------------
-  
+
   // Clean up existing system exercises (where userId is null)
   await prisma.exercise.deleteMany({ where: { userId: null } });
 
   // Insert standard exercises
-  await prisma.exercise.createMany({
-    data: STANDARD_EXERCISES
-  });
+  await prisma.exercise.createMany({ data: STANDARD_EXERCISES });
 
   //console.log(`✅ Seeded ${STANDARD_EXERCISES.length} system exercises.`);
-
 }
 
 main()

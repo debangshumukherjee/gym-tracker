@@ -98,7 +98,7 @@ const Signup = () => {
         <div className='p-8 text-center bg-gray-900 dark:bg-gray-950 text-white'>
           <div className='w-12 h-12 bg-blue-600 rounded-md flex items-center justify-center mx-auto mb-4 shadow-lg'>
             <img
-              src='/favicon.png'
+              src='/Ffavicon.png'
               alt='favicon'
               className='w-8 h-8 rounded-md object-cover'
             />

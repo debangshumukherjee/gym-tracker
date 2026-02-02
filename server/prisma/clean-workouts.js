@@ -1,4 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+/** @format */
+
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 /**
@@ -15,7 +17,6 @@ async function main() {
     // 2. Delete all Workouts (Parent records)
     const deletedWorkouts = await prisma.workout.deleteMany({});
     //console.log(`Deleted ${deletedWorkouts.count} workouts.`);
-
   } catch (error) {
     //console.error("Error cleaning database:", error);
     process.exit(1);
