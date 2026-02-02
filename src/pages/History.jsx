@@ -293,7 +293,7 @@ const WorkoutSessionCard = ({
               {workout.name || "Untitled Workout"}
             </h3>
             <div className='text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-0.5'>
-              <Clock size={12} /> {format(parseISO(workout.date))}
+              <Clock size={12} /> {format(parseISO(workout.date), "h:mm a")}
               <span className='mx-1'>•</span>
               <span>{workout.exercises?.length || 0} Exercises</span>
             </div>
