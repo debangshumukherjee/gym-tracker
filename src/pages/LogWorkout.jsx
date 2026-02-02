@@ -14,6 +14,10 @@ import {
   X,
   CheckCircle,
   AlertCircle,
+  Clock,
+  Flame,
+  MapPin,
+  AlertTriangle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
@@ -35,9 +39,14 @@ const LogWorkout = () => {
   const [showSelector, setShowSelector] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
 
-  // Custom Modal & Toast State
+  // Modals
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Data for Modals
   const [templateNameInput, setTemplateNameInput] = useState("");
+  const [templateToDelete, setTemplateToDelete] = useState(null);
+
   const [toast, setToast] = useState({
     show: false,
     message: "",
@@ -109,11 +118,15 @@ const LogWorkout = () => {
       exerciseId: exercise.id,
       name: exercise.name,
       bodyPart: exercise.bodyPart,
-      type: exercise.type,
+      type:
+        exercise.type ||
+        (exercise.bodyPart === "Cardio" ? "cardio" : "strength"),
       sets: [{ setNumber: 1, weight: "", reps: "" }],
       cardioTime: "",
       cardioDistance: "",
       cardioCalories: "",
+      cardioIncline: "",
+      cardioSpeed: "",
     };
     setSelectedExercises([...selectedExercises, newExercise]);
     setShowSelector(false);
@@ -128,9 +141,17 @@ const LogWorkout = () => {
     );
   };
 
+  // Update Strength Sets
   const updateSet = (exerciseIndex, setIndex, field, value) => {
     const updated = [...selectedExercises];
     updated[exerciseIndex].sets[setIndex][field] = value;
+    setSelectedExercises(updated);
+  };
+
+  // Update Cardio Fields (Directly on exercise object)
+  const updateCardioData = (exerciseIndex, field, value) => {
+    const updated = [...selectedExercises];
+    updated[exerciseIndex][field] = value;
     setSelectedExercises(updated);
   };
 
@@ -148,14 +169,12 @@ const LogWorkout = () => {
   const removeSet = (exerciseIndex, setIndex) => {
     const updated = [...selectedExercises];
     updated[exerciseIndex].sets.splice(setIndex, 1);
-
-    // Re-index set numbers
     updated[exerciseIndex].sets.forEach((set, i) => (set.setNumber = i + 1));
     setSelectedExercises(updated);
   };
 
   // ---------------------------------------------------------------------------
-  // FEATURES (Copy, Save Template, Load Template, Submit)
+  // FEATURES (Copy, Templates)
   // ---------------------------------------------------------------------------
 
   const handleCopyPrevious = async () => {
@@ -164,7 +183,6 @@ const LogWorkout = () => {
       !window.confirm("Replace current exercises?")
     )
       return;
-
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -186,6 +204,7 @@ const LogWorkout = () => {
     }
   };
 
+  // --- TEMPLATE SAVING ---
   const openSaveModal = () => {
     if (selectedExercises.length === 0) {
       showToast("Add exercises before saving!", "error");
@@ -197,7 +216,6 @@ const LogWorkout = () => {
 
   const confirmSaveTemplate = async () => {
     if (!templateNameInput.trim()) return;
-
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_URL}/api/templates`, {
@@ -225,6 +243,7 @@ const LogWorkout = () => {
     }
   };
 
+  // --- TEMPLATE LOADING ---
   const handleLoadTemplate = (template) => {
     if (
       selectedExercises.length > 0 &&
@@ -241,7 +260,9 @@ const LogWorkout = () => {
           exerciseId: original.id,
           name: original.name,
           bodyPart: original.bodyPart,
-          type: original.type,
+          type:
+            original.type ||
+            (original.bodyPart === "Cardio" ? "cardio" : "strength"),
           sets: Array(tempEx.sets || 3)
             .fill(0)
             .map((_, i) => ({ setNumber: i + 1, weight: "", reps: "" })),
@@ -258,6 +279,37 @@ const LogWorkout = () => {
     showToast(`Loaded "${template.name}"`);
   };
 
+  // --- TEMPLATE DELETING ---
+  const promptDeleteTemplate = (e, template) => {
+    e.stopPropagation(); // Prevent loading the template when clicking delete
+    setTemplateToDelete(template);
+    setShowDeleteConfirm(true);
+    setShowTemplates(false); // Close dropdown
+  };
+
+  const handleDeleteTemplate = async () => {
+    if (!templateToDelete) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${API_URL}/api/templates/${templateToDelete.id}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      if (res.ok) {
+        setTemplates(templates.filter((t) => t.id !== templateToDelete.id));
+        showToast("Template deleted successfully");
+        setShowDeleteConfirm(false);
+        setTemplateToDelete(null);
+      } else {
+        showToast("Failed to delete template", "error");
+      }
+    } catch (e) {
+      showToast("Error deleting template", "error");
+    }
+  };
+
+  // --- SUBMIT WORKOUT ---
   const handleSubmit = async () => {
     if (selectedExercises.length === 0)
       return showToast("Add at least one exercise!", "error");
@@ -316,18 +368,28 @@ const LogWorkout = () => {
               <FolderOpen size={16} /> Load Template
             </button>
             {showTemplates && (
-              <div className='absolute top-full mt-2 left-0 w-48 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-xl overflow-hidden z-20'>
+              <div className='absolute top-full mt-2 left-0 w-64 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-xl overflow-hidden z-20'>
                 {templates.length === 0 ? (
                   <div className='p-3 text-xs text-gray-400'>No templates</div>
                 ) : (
                   templates.map((t) => (
-                    <button
+                    <div
                       key={t.id}
-                      onClick={() => handleLoadTemplate(t)}
-                      className='w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0'
+                      className='w-full flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0 pr-3'
                     >
-                      {t.name}
-                    </button>
+                      <button
+                        onClick={() => handleLoadTemplate(t)}
+                        className='flex-1 text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200'
+                      >
+                        {t.name}
+                      </button>
+                      <button
+                        onClick={(e) => promptDeleteTemplate(e, t)}
+                        className='p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition'
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   ))
                 )}
               </div>
@@ -362,75 +424,138 @@ const LogWorkout = () => {
 
       {/* EXERCISE LIST */}
       <div className='space-y-4'>
-        {selectedExercises.map((exercise, exIndex) => (
-          <div
-            key={exercise.uniqueId}
-            className='bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700'
-          >
-            <div className='flex justify-between items-start mb-4'>
-              <div>
-                <h3 className='font-bold text-gray-800 dark:text-white text-lg'>
-                  {exercise.name}
-                </h3>
-                <span className='text-xs text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-md'>
-                  {exercise.bodyPart}
-                </span>
-              </div>
-              <button
-                onClick={() => removeExercise(exercise.uniqueId)}
-                className='text-red-400 hover:text-red-600'
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
+        {selectedExercises.map((exercise, exIndex) => {
+          const isCardio =
+            exercise.bodyPart === "Cardio" || exercise.type === "cardio";
 
-            {/* SETS */}
-            {exercise.type === "strength" && (
-              <div className='space-y-2'>
-                {exercise.sets.map((set, setIndex) => (
-                  <div
-                    key={setIndex}
-                    className='grid grid-cols-6 gap-2 items-center'
+          return (
+            <div
+              key={exercise.uniqueId}
+              className='bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700'
+            >
+              <div className='flex justify-between items-start mb-4'>
+                <div>
+                  <h3 className='font-bold text-gray-800 dark:text-white text-lg'>
+                    {exercise.name}
+                  </h3>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-md ${isCardio ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" : "text-gray-400 bg-gray-50 dark:bg-gray-700"}`}
                   >
-                    <div className='flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 text-xs font-bold mx-auto'>
-                      {set.setNumber}
-                    </div>
-                    <input
-                      type='number'
-                      placeholder='kg'
-                      className='col-span-2 p-2 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-lg text-center text-sm'
-                      value={set.weight}
-                      onChange={(e) =>
-                        updateSet(exIndex, setIndex, "weight", e.target.value)
-                      }
-                    />
-                    <input
-                      type='number'
-                      placeholder='reps'
-                      className='col-span-2 p-2 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-lg text-center text-sm'
-                      value={set.reps}
-                      onChange={(e) =>
-                        updateSet(exIndex, setIndex, "reps", e.target.value)
-                      }
-                    />
-                    <button
-                      onClick={() => removeSet(exIndex, setIndex)}
-                      className='col-span-1 flex justify-center text-gray-300 hover:text-red-500'
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
+                    {exercise.bodyPart}
+                  </span>
+                </div>
                 <button
-                  onClick={() => addSet(exIndex)}
-                  className='w-full py-2 mt-2 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition flex items-center justify-center gap-1'
+                  onClick={() => removeExercise(exercise.uniqueId)}
+                  className='text-red-400 hover:text-red-600'
                 >
-                  <Plus size={14} /> Add Set
+                  <Trash2 size={18} />
                 </button>
               </div>
-            )}
-          </div>
-        ))}
+
+              {/* --- CONDITIONAL RENDERING: CARDIO vs STRENGTH --- */}
+              {isCardio ? (
+                // CARDIO INPUTS
+                <div className='grid grid-cols-3 gap-3 mt-4'>
+                  <div className='space-y-1'>
+                    <label className='text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1'>
+                      <Clock size={10} /> Time
+                    </label>
+                    <input
+                      type='number'
+                      placeholder='min'
+                      value={exercise.cardioTime}
+                      onChange={(e) =>
+                        updateCardioData(exIndex, "cardioTime", e.target.value)
+                      }
+                      className='w-full p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-xl text-center font-bold outline-none focus:border-blue-500'
+                    />
+                  </div>
+                  <div className='space-y-1'>
+                    <label className='text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1'>
+                      <MapPin size={10} /> Dist
+                    </label>
+                    <input
+                      type='number'
+                      placeholder='km'
+                      value={exercise.cardioDistance}
+                      onChange={(e) =>
+                        updateCardioData(
+                          exIndex,
+                          "cardioDistance",
+                          e.target.value,
+                        )
+                      }
+                      className='w-full p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-xl text-center font-bold outline-none focus:border-blue-500'
+                    />
+                  </div>
+                  <div className='space-y-1'>
+                    <label className='text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1'>
+                      <Flame size={10} /> Cals
+                    </label>
+                    <input
+                      type='number'
+                      placeholder='kcal'
+                      value={exercise.cardioCalories}
+                      onChange={(e) =>
+                        updateCardioData(
+                          exIndex,
+                          "cardioCalories",
+                          e.target.value,
+                        )
+                      }
+                      className='w-full p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-xl text-center font-bold outline-none focus:border-blue-500'
+                    />
+                  </div>
+                </div>
+              ) : (
+                // STRENGTH SETS
+                <div className='space-y-2'>
+                  {exercise.sets.map((set, setIndex) => (
+                    <div
+                      key={setIndex}
+                      className='grid grid-cols-6 gap-2 items-center'
+                    >
+                      <div className='flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 text-xs font-bold mx-auto'>
+                        {set.setNumber}
+                      </div>
+                      <input
+                        type='number'
+                        placeholder='kg'
+                        className='col-span-2 p-2 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-lg text-center text-sm'
+                        value={set.weight}
+                        onChange={(e) =>
+                          updateSet(exIndex, setIndex, "weight", e.target.value)
+                        }
+                      />
+                      <input
+                        type='number'
+                        placeholder='reps'
+                        className='col-span-2 p-2 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-lg text-center text-sm'
+                        value={set.reps}
+                        onChange={(e) =>
+                          updateSet(exIndex, setIndex, "reps", e.target.value)
+                        }
+                      />
+                      <button
+                        onClick={() => removeSet(exIndex, setIndex)}
+                        className='col-span-1 flex justify-center text-gray-300 hover:text-red-500'
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addSet(exIndex)}
+                    className='w-full py-2 mt-2 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition flex items-center justify-center gap-1'
+                  >
+                    <Plus size={14} /> Add Set
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
         <button
           onClick={() => setShowSelector(true)}
           className='w-full py-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl text-gray-400 font-bold hover:border-blue-500 hover:text-blue-500 transition flex flex-col items-center justify-center gap-2'
@@ -500,6 +625,45 @@ const LogWorkout = () => {
                 className='px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50'
               >
                 Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Template Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'>
+          <div className='bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm animate-in zoom-in duration-200 border border-gray-100 dark:border-gray-700'>
+            <div className='flex items-center gap-3 mb-4 text-red-600'>
+              <div className='bg-red-100 dark:bg-red-900/30 p-2 rounded-full'>
+                <AlertTriangle size={24} />
+              </div>
+              <h3 className='text-lg font-bold text-gray-900 dark:text-white'>
+                Delete Template?
+              </h3>
+            </div>
+
+            <p className='text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed'>
+              Are you sure you want to delete{" "}
+              <span className='font-bold text-gray-800 dark:text-white'>
+                "{templateToDelete?.name}"
+              </span>
+              ? This action cannot be undone.
+            </p>
+
+            <div className='flex justify-end gap-3'>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className='flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl'
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteTemplate}
+                className='flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-200 dark:shadow-none'
+              >
+                Delete
               </button>
             </div>
           </div>

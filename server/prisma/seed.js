@@ -71,7 +71,6 @@ const STANDARD_EXERCISES = [
   { name: "Cycling", type: "cardio", bodyPart: "Cardio" },
   { name: "Elliptical", type: "cardio", bodyPart: "Cardio" },
   { name: "Rowing Machine", type: "cardio", bodyPart: "Cardio" },
-  { name: "Jump Rope", type: "cardio", bodyPart: "Cardio" },
 ];
 
 async function main() {
