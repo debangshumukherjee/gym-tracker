@@ -123,7 +123,7 @@ gym-tracker/
 └── package.json
 ```
 
-## 🤝 Contributing
+## 🤝 Contributing 
 Contributions are welcome.
 
 1. Fork the project  
