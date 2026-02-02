@@ -151,7 +151,7 @@ const LogWorkout = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/templates', {
+      const res = await fetch(`${API_URL}/api/templates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name: templateNameInput, exercises: selectedExercises })
@@ -198,7 +198,7 @@ const LogWorkout = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/workouts', {
+      const res = await fetch(`${API_URL}/api/workouts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name: workoutName, date, exercises: selectedExercises })
