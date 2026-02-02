@@ -49,7 +49,7 @@ function App() {
   useEffect(() => {
     console.log(
       "%c Built by Debangshu Mukherjee 🚀 ",
-      "background: #222; color: #bada55; font-size: 20px; padding: 10px; border-radius: 5px;"
+      "background: #222; color: #bada55; font-size: 20px; padding: 10px; border-radius: 5px; min-width: 100px; text-align: center;"
     );
   }, []);
   return (
