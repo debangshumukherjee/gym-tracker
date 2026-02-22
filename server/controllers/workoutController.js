@@ -3,11 +3,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-/**
- * 1. CREATE OR MERGE WORKOUT
- * Validates user age constraint (min 5 years old) and merges new exercises
- * into an existing workout if one exists for the same day and name.
- */
+// Create or update workout
 exports.createWorkout = async (req, res) => {
   try {
     let { name, exercises, date } = req.body;
@@ -15,7 +11,6 @@ exports.createWorkout = async (req, res) => {
 
     const userId = req.user.id;
 
-    // --- AGE VALIDATION ---
     const workoutDate = date ? new Date(date) : new Date();
 
     const user = await prisma.user.findUnique({
@@ -26,9 +21,8 @@ exports.createWorkout = async (req, res) => {
     if (user.dateOfBirth) {
       const dob = new Date(user.dateOfBirth);
       const minAgeDate = new Date(dob);
-      minAgeDate.setFullYear(dob.getFullYear() + 5); // Add 5 years
+      minAgeDate.setFullYear(dob.getFullYear() + 5);
 
-      // Reset time components for strict date comparison
       minAgeDate.setHours(0, 0, 0, 0);
       const compareDate = new Date(workoutDate);
       compareDate.setHours(0, 0, 0, 0);
@@ -42,13 +36,12 @@ exports.createWorkout = async (req, res) => {
       }
     }
 
-    // --- DATE RANGE SETUP ---
     const startOfDay = new Date(workoutDate);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(workoutDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // --- CHECK FOR EXISTING SESSION ---
+    // Check for existing workout on same day
     const existingWorkout = await prisma.workout.findFirst({
       where: {
         userId: userId,
@@ -57,11 +50,9 @@ exports.createWorkout = async (req, res) => {
       },
     });
 
-    // --- PREPARE EXERCISE DATA ---
     const newExercisesData = exercises.map((ex) => ({
       exerciseId: ex.exerciseId,
 
-      // Strength Data
       sets: ex.sets
         ? ex.sets.map((s) => ({
             setNumber: s.setNumber,
@@ -70,7 +61,6 @@ exports.createWorkout = async (req, res) => {
           }))
         : [],
 
-      // Cardio Data
       cardioTime: parseFloat(ex.cardioTime) || null,
       cardioDistance: parseFloat(ex.cardioDistance) || null,
       cardioCalories: parseFloat(ex.cardioCalories) || null,
@@ -81,14 +71,12 @@ exports.createWorkout = async (req, res) => {
     let result;
 
     if (existingWorkout) {
-      // MERGE: Update existing workout by adding new exercises
       result = await prisma.workout.update({
         where: { id: existingWorkout.id },
         data: { exercises: { create: newExercisesData } },
         include: { exercises: true },
       });
     } else {
-      // CREATE: Start a fresh workout session
       result = await prisma.workout.create({
         data: {
           userId,
@@ -102,17 +90,13 @@ exports.createWorkout = async (req, res) => {
 
     res.status(201).json(result);
   } catch (error) {
-    //console.error("Error saving workout:", error);
     res
       .status(500)
       .json({ message: "Failed to save workout", error: error.message });
   }
 };
 
-/**
- * 2. GET WORKOUT HISTORY
- * Fetches all past workouts for the user, ordered by date (newest first).
- */
+// Get workout history
 exports.getWorkouts = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -125,15 +109,11 @@ exports.getWorkouts = async (req, res) => {
 
     res.json(workouts);
   } catch (error) {
-    //console.error("Error fetching history:", error);
     res.status(500).json({ message: "Error fetching history" });
   }
 };
 
-/**
- * 3. DELETE WORKOUT
- * Deletes an entire workout session and all associated logs.
- */
+// Delete workout and logs
 exports.deleteWorkout = async (req, res) => {
   try {
     const { id } = req.params;
@@ -149,13 +129,10 @@ exports.deleteWorkout = async (req, res) => {
   }
 };
 
-/**
- * 4. DELETE SINGLE EXERCISE LOG
- * Removes one exercise from a session. Deletes the session if it becomes empty.
- */
+// Delete exercise log
 exports.deleteExerciseLog = async (req, res) => {
   try {
-    const { id, logId } = req.params; // id = workoutId, logId = exerciseLogId
+    const { id, logId } = req.params;
 
     await prisma.workoutLog.delete({ where: { id: logId } });
 
@@ -176,10 +153,7 @@ exports.deleteExerciseLog = async (req, res) => {
   }
 };
 
-/**
- * 5. UPDATE SINGLE EXERCISE LOG
- * Updates sets or cardio metrics for an existing log entry.
- */
+// Update exercise log
 exports.updateExerciseLog = async (req, res) => {
   try {
     const { logId } = req.params;
@@ -231,10 +205,7 @@ exports.updateExerciseLog = async (req, res) => {
   }
 };
 
-/**
- * 6. GET LATEST WORKOUT
- * Fetches the most recently logged workout to pre-fill the "Log Workout" page.
- */
+// Get latest workout
 exports.getLatestWorkout = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -268,7 +239,6 @@ exports.getLatestWorkout = async (req, res) => {
 
     res.json({ exercises: formattedExercises, name: latest.name });
   } catch (error) {
-    //console.error("Get Latest Error:", error);
     res.status(500).json({ message: "Error fetching latest workout" });
   }
 };

@@ -87,15 +87,13 @@ const Exercises = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-
-      // Safely parse user data
+      
       const userStr = localStorage.getItem("user");
       if (userStr) {
         try {
           const user = JSON.parse(userStr);
           setCurrentUserId(user.id);
         } catch (e) {
-          // Silent fail for user parsing
         }
       }
 
@@ -353,9 +351,7 @@ const Exercises = () => {
 // SUB-COMPONENTS
 // -----------------------------------------------------------------------------
 
-/**
- * Reusable Confirmation Modal
- */
+// Reusable Confirmation Modal
 const ConfirmationModal = ({ isOpen, title, message, onClose, onConfirm }) => {
   if (!isOpen) return null;
   return (
@@ -389,9 +385,7 @@ const ConfirmationModal = ({ isOpen, title, message, onClose, onConfirm }) => {
   );
 };
 
-/**
- * Modal for Creating or Editing Exercises
- */
+// Modal for Creating or Editing Exercises
 const CreateExerciseModal = ({
   onClose,
   onSuccess,
@@ -499,9 +493,7 @@ const CreateExerciseModal = ({
   );
 };
 
-/**
- * Modal for Viewing Exercise Statistics & Charts
- */
+// Modal for Viewing Exercise Statistics & Charts
 const ExerciseStatsModal = ({ exercise, onClose }) => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);

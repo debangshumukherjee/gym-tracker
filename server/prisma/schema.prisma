@@ -74,7 +74,6 @@ model Exercise {
   type      String   // "strength" or "cardio"
   bodyPart  String
 
-  // Optional: If null, it's a Global Exercise. If set, it's a Custom Exercise.
   userId    String?  @db.ObjectId
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -97,15 +96,15 @@ model Template {
 // Embedded type for exercises inside a template
 type TemplateExercise {
   exerciseId String   @db.ObjectId
-  sets       Int?     // Default number of sets
-  reps       Int?     // Target reps
+  sets       Int?
+  reps       Int?
 }
 
 // --------------------------------------
 // 5. WORKOUT LOGGING (SESSIONS)
 // --------------------------------------
 
-// Represents a single workout session (e.g., "Monday Chest Day")
+// Represents a single workout session
 model Workout {
   id        String       @id @default(auto()) @map("_id") @db.ObjectId
   userId    String       @db.ObjectId

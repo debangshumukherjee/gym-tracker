@@ -56,7 +56,6 @@ const VerifyOTP = () => {
       const data = await res.json();
 
       if (res.ok) {
-        // Redirect to login with success message
         navigate("/login", {
           state: { message: "Account verified! Please login." },
         });
@@ -72,8 +71,6 @@ const VerifyOTP = () => {
 
   const handleResend = async () => {
     if (!canResend) return;
-
-    // Reset Timer
     setTimer(60);
     setCanResend(false);
 

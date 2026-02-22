@@ -628,7 +628,7 @@ const Settings = () => {
         </div>
       )}
 
-      {/* --- DELETE ACCOUNT MODAL (Two Steps) --- */}
+      {/* --- DELETE ACCOUNT MODAL --- */}
       {showDeleteModal && (
         <div className='fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center border border-gray-100 dark:border-gray-700 animate-scale-in'>

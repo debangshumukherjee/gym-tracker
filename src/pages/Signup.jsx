@@ -19,8 +19,6 @@ const Signup = () => {
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
-
-  // Custom Toast State
   const [toast, setToast] = useState({
     show: false,
     message: "",
@@ -50,7 +48,6 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation: Check matching passwords
     if (formData.password !== formData.confirmPassword) {
       showToast("Passwords do not match!", "error");
       return;
@@ -59,7 +56,6 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      // API Call: Register User
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -73,10 +69,8 @@ const Signup = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Registration failed");
 
-      // Success: Show Toast & Redirect
       showToast("Account created! Sending OTP...");
 
-      // Slight delay to allow user to read success message before redirection
       setTimeout(() => {
         navigate("/verify-otp", { state: { email: formData.email } });
       }, 1500);
@@ -98,7 +92,7 @@ const Signup = () => {
         <div className='p-8 text-center bg-gray-900 dark:bg-gray-950 text-white'>
           <div className='w-12 h-12 bg-blue-600 rounded-md flex items-center justify-center mx-auto mb-4 shadow-lg'>
             <img
-              src='/Ffavicon.png'
+              src='/favicon.png'
               alt='favicon'
               className='w-8 h-8 rounded-md object-cover'
             />

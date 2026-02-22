@@ -281,10 +281,10 @@ const LogWorkout = () => {
 
   // --- TEMPLATE DELETING ---
   const promptDeleteTemplate = (e, template) => {
-    e.stopPropagation(); // Prevent loading the template when clicking delete
+    e.stopPropagation();
     setTemplateToDelete(template);
     setShowDeleteConfirm(true);
-    setShowTemplates(false); // Close dropdown
+    setShowTemplates(false);
   };
 
   const handleDeleteTemplate = async () => {

@@ -65,7 +65,6 @@ const ResetPassword = () => {
       if (res.ok) {
         showToast("Password updated successfully!");
 
-        // Redirect to login after a brief delay
         setTimeout(() => {
           navigate("/login");
         }, 1500);

@@ -40,9 +40,7 @@ import { API_URL } from "../config";
 
 // --- HELPER FUNCTIONS ---
 
-/**
- * Calculates the total volume (Weight * Reps) for a single workout log.
- */
+// Calculates the total volume (Weight * Reps)
 const calculateVolume = (log) => {
   if (!log.exercises) return 0;
   return log.exercises.reduce((acc, ex) => {
@@ -66,7 +64,7 @@ const Dashboard = () => {
   const [userLogs, setUserLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. Get Name Safely (with fallback)
+  // 1. Get Name Safely
   const [userName, setUserName] = useState(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -112,7 +110,6 @@ const Dashboard = () => {
           }
         }
       } catch (error) {
-        //console.error("Network Error:", error);
       } finally {
         setLoading(false);
       }
@@ -131,7 +128,6 @@ const Dashboard = () => {
   const currentStreak = useMemo(() => {
     if (!userLogs.length) return 0;
 
-    // Get unique dates sorted descending
     const workoutDates = [
       ...new Set(
         userLogs.map((log) => format(parseISO(log.date), "yyyy-MM-dd")),
@@ -141,7 +137,6 @@ const Dashboard = () => {
     let streak = 0;
     let checkDate = new Date();
 
-    // Check backwards from today
     while (true) {
       const dateStr = format(checkDate, "yyyy-MM-dd");
       const hasWorkout = workoutDates.includes(dateStr);
@@ -150,7 +145,6 @@ const Dashboard = () => {
         streak++;
         checkDate = subDays(checkDate, 1);
       } else if (isSameDay(checkDate, new Date())) {
-        // Allow skipping today if checking midday
         checkDate = subDays(checkDate, 1);
       } else {
         break;

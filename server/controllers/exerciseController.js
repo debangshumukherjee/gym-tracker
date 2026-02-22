@@ -3,18 +3,15 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-/**
- * 1. GET EXERCISES
- * Fetches Global exercises (system default) AND Custom exercises created by the logged-in user.
- */
+// Get all exercises
 exports.getExercises = async (req, res) => {
   try {
     const exercises = await prisma.exercise.findMany({
       where: {
         OR: [
-          { userId: null }, // 1. Global Exercises (System default)
-          { userId: { isSet: false } }, // Handle potential MongoDB unset fields
-          { userId: req.user.id }, // 2. Custom exercises created by THIS user
+          { userId: null }, // Global Exercises
+          { userId: { isSet: false } },
+          { userId: req.user.id }, // Custom user exercises
         ],
       },
       orderBy: { name: "asc" },
@@ -26,10 +23,7 @@ exports.getExercises = async (req, res) => {
   }
 };
 
-/**
- * 2. CREATE EXERCISE
- * Creates a new custom exercise for the logged-in user.
- */
+// Create custom exercise
 exports.createExercise = async (req, res) => {
   try {
     const { name, bodyPart, type } = req.body;
@@ -44,10 +38,7 @@ exports.createExercise = async (req, res) => {
   }
 };
 
-/**
- * 3. UPDATE EXERCISE
- * Updates a custom exercise. Users can only update their own exercises.
- */
+// Update custom exercise
 exports.updateExercise = async (req, res) => {
   try {
     const { id } = req.params;
@@ -73,10 +64,7 @@ exports.updateExercise = async (req, res) => {
   }
 };
 
-/**
- * 4. DELETE EXERCISE
- * Deletes a custom exercise. Prevents deletion if the exercise is used in past workouts.
- */
+// Delete custom exercise
 exports.deleteExercise = async (req, res) => {
   try {
     const { id } = req.params;

@@ -8,18 +8,13 @@ const sendEmail = require("../utils/sendEmail");
 
 const prisma = new PrismaClient();
 
-// --- HELPER FUNCTIONS ---
 
-/**
- * Generates a JWT token for authenticated sessions.
- */
+// Generate JWT Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
 };
 
-/**
- * Calculates age based on Date of Birth.
- */
+// Calculate age from DOB
 const calculateAge = (dob) => {
   if (!dob) return null;
   const diff = Date.now() - new Date(dob).getTime();
@@ -27,26 +22,19 @@ const calculateAge = (dob) => {
   return Math.abs(ageDate.getUTCFullYear() - 1970);
 };
 
-// --- CONTROLLERS ---
-
-/**
- * 1. REGISTER USER
- * Creates a new user (unverified) and sends an OTP via email.
- */
+// Register User
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash password and generate OTP
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60000);
 
     // Create User
     await prisma.user.create({
@@ -83,20 +71,16 @@ exports.register = async (req, res) => {
         message: "Registration successful. Please check your email for OTP.",
       });
   } catch (error) {
-    // //console.error("Register Error:", error);
     res.status(500).json({ message: "Server error during registration" });
   }
 };
 
-/**
- * 2. VERIFY OTP (Registration)
- * Verifies the email address and activates the account.
- */
+
+// Verify OTP during registration
 exports.verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    // Find user with matching OTP that hasn't expired
     const user = await prisma.user.findFirst({
       where: { email, otp, otpExpires: { gt: new Date() } },
     });
@@ -105,7 +89,6 @@ exports.verifyOTP = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
-    // Activate user
     await prisma.user.update({
       where: { id: user.id },
       data: { isVerified: true, otp: null, otpExpires: null },
@@ -113,15 +96,12 @@ exports.verifyOTP = async (req, res) => {
 
     res.json({ message: "Email verified successfully! You can now log in." });
   } catch (error) {
-    //console.error("Verify OTP Error:", error);
     res.status(500).json({ message: "Error verifying OTP" });
   }
 };
 
-/**
- * 3. RESEND OTP
- * Generates a new OTP for unverified users.
- */
+
+// Resend OTP
 exports.resendOTP = async (req, res) => {
   try {
     const { email } = req.body;
@@ -153,15 +133,12 @@ exports.resendOTP = async (req, res) => {
 
     res.json({ message: "New OTP sent to your email!" });
   } catch (error) {
-    //console.error("Resend OTP Error:", error);
     res.status(500).json({ message: "Error resending OTP" });
   }
 };
 
-/**
- * 4. LOGIN USER
- * Authenticates user and returns JWT token.
- */
+
+// Login User
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -186,15 +163,12 @@ exports.loginUser = async (req, res) => {
       token: generateToken(user.id),
     });
   } catch (error) {
-    //console.error("Login Error:", error);
     res.status(500).json({ message: "Server error during login" });
   }
 };
 
-/**
- * 5. GET PROFILE
- * Returns user details, metrics, and weight history.
- */
+
+// Get user profile
 exports.getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
@@ -217,15 +191,12 @@ exports.getMe = async (req, res) => {
 
     res.json({ ...user, age: calculateAge(user.dateOfBirth) });
   } catch (error) {
-    //console.error("GetMe Error:", error);
     res.status(500).json({ message: "Error fetching profile" });
   }
 };
 
-/**
- * 6. UPDATE PROFILE
- * Updates basic user info (Name, DOB, Height, Gender).
- */
+
+// Update profile details
 exports.updateProfile = async (req, res) => {
   try {
     const { name, dateOfBirth, height, gender } = req.body;
@@ -242,15 +213,12 @@ exports.updateProfile = async (req, res) => {
 
     res.json({ message: "Profile updated", user: updatedUser });
   } catch (error) {
-    //console.error("Update Profile Error:", error);
     res.status(500).json({ message: "Update failed" });
   }
 };
 
-/**
- * 7. VERIFY EMAIL CHANGE OTP
- * (Previously Missing Function)
- */
+
+// Verify new email via OTP
 exports.verifyEmailChange = async (req, res) => {
   try {
     const { otp } = req.body;
@@ -268,7 +236,6 @@ exports.verifyEmailChange = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
-    // Commit Change
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -286,10 +253,7 @@ exports.verifyEmailChange = async (req, res) => {
   }
 };
 
-/**
- * 8. LOG/UPDATE WEIGHT
- * Logs daily weight and updates current weight. Blocks future dates.
- */
+// Log or update daily weight
 exports.updateWeight = async (req, res) => {
   try {
     const { weight, date } = req.body;
@@ -354,15 +318,11 @@ exports.updateWeight = async (req, res) => {
       weightHistory: history,
     });
   } catch (error) {
-    //console.error("Update Weight Error:", error);
     res.status(500).json({ message: "Error updating weight" });
   }
 };
 
-/**
- * 9. FORGOT PASSWORD
- * Sends an OTP to reset password.
- */
+// Send password reset OTP
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -399,15 +359,11 @@ exports.forgotPassword = async (req, res) => {
 
     res.json({ message: "OTP sent to your email" });
   } catch (error) {
-    //console.error("Forgot Password Error:", error);
     res.status(500).json({ message: "Failed to send email" });
   }
 };
 
-/**
- * 10. RESET PASSWORD
- * Verifies OTP and updates the password.
- */
+// Reset password
 exports.resetPassword = async (req, res) => {
   try {
     const { email, otp, password } = req.body;
@@ -427,15 +383,11 @@ exports.resetPassword = async (req, res) => {
 
     res.json({ message: "Password updated successfully!" });
   } catch (error) {
-    //console.error("Reset Password Error:", error);
     res.status(500).json({ message: "Error resetting password" });
   }
 };
 
-/**
- * 11. INITIATE DELETE ACCOUNT
- * Sends an OTP to confirm account deletion.
- */
+// Send account deletion OTP
 exports.initiateDeleteAccount = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
@@ -471,15 +423,11 @@ exports.initiateDeleteAccount = async (req, res) => {
 
     res.json({ message: "OTP sent to your email." });
   } catch (error) {
-    //console.error("Delete Initiate Error:", error);
     res.status(500).json({ message: "Failed to send OTP" });
   }
 };
 
-/**
- * 12. CONFIRM DELETE ACCOUNT
- * Verifies OTP and deletes all user data (Logs, Workouts, History, Templates, Exercises, User).
- */
+// Confirm and delete account fully
 exports.confirmDeleteAccount = async (req, res) => {
   try {
     const { otp } = req.body;
@@ -501,7 +449,6 @@ exports.confirmDeleteAccount = async (req, res) => {
 
     res.json({ message: "Account and all data deleted successfully" });
   } catch (error) {
-    //console.error("Delete Confirm Error:", error);
     res.status(500).json({ message: "Delete failed" });
   }
 };

@@ -2,15 +2,11 @@
 
 const jwt = require("jsonwebtoken");
 
-/**
- * AUTH MIDDLEWARE
- * Protects private routes by verifying the JWT token from the Authorization header.
- * If valid, it attaches the user ID to the request object.
- */
+// Auth Middleware - Protects private routes by verifying JWT
 exports.protect = (req, res, next) => {
   let token;
 
-  // 1. Check for token in Authorization header (Format: "Bearer <token>")
+  // 1. Check for token in Authorization header
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")

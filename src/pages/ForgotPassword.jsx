@@ -58,8 +58,6 @@ const ForgotPassword = () => {
 
       if (res.ok) {
         showToast("OTP sent successfully!");
-
-        // Delay navigation slightly so user sees the success message
         setTimeout(() => {
           navigate("/reset-password", { state: { email } });
         }, 1000);

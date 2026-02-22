@@ -3,7 +3,6 @@
 const express = require("express");
 const router = express.Router();
 
-// Import Controllers
 const {
   register,
   loginUser,
@@ -19,37 +18,23 @@ const {
   confirmDeleteAccount,
 } = require("../controllers/authController");
 
-// Import Middleware
 const { protect } = require("../middleware/authMiddleware");
 
-// -----------------------------------------------------------------------------
-// PUBLIC ROUTES (No Authentication Required)
-// -----------------------------------------------------------------------------
-
-// Registration & Login
 router.post("/register", register);
 router.post("/login", loginUser);
 router.post("/verify-otp", verifyOTP);
 router.post("/resend-otp", resendOTP);
 
-// Password Management
-router.post("/forgotpassword", forgotPassword); // Request OTP
-router.put("/resetpassword", resetPassword); // Reset using OTP
+router.post("/forgotpassword", forgotPassword);
+router.put("/resetpassword", resetPassword);
 
-// -----------------------------------------------------------------------------
-// PROTECTED ROUTES (Requires Valid JWT Token)
-// -----------------------------------------------------------------------------
+router.get("/me", protect, getMe);
+router.put("/profile", protect, updateProfile);
 
-// User Profile
-router.get("/me", protect, getMe); // Fetch current user data
-router.put("/profile", protect, updateProfile); // Update profile details
-
-// Email & Weight Management
 router.post("/verify-email-change", protect, verifyEmailChange);
-router.post("/weight", protect, updateWeight); // Log daily weight
+router.post("/weight", protect, updateWeight);
 
-// Account Deletion Flow
-router.post("/delete-initiate", protect, initiateDeleteAccount); // Step 1: Send OTP
-router.post("/delete-confirm", protect, confirmDeleteAccount); // Step 2: Confirm & Delete
+router.post("/delete-initiate", protect, initiateDeleteAccount);
+router.post("/delete-confirm", protect, confirmDeleteAccount);
 
 module.exports = router;

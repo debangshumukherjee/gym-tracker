@@ -309,8 +309,6 @@ const WorkoutSessionCard = ({
           >
             <Trash2 size={18} />
           </button>
-
-          {/* Chevron Icon */}
           <div
             className={`transform transition-transform duration-300 text-gray-400 ${isOpen ? "rotate-180" : ""}`}
           >
@@ -332,7 +330,7 @@ const WorkoutSessionCard = ({
                   key={i}
                   className='w-full flex items-center justify-between text-sm p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm group hover:border-blue-200 dark:hover:border-blue-500/30 transition-colors'
                 >
-                  {/* Exercise Info (Clickable for Stats) */}
+                  {/* Exercise Info */}
                   <div
                     onClick={() => onStats(log)}
                     className='flex items-center gap-3 cursor-pointer flex-1'

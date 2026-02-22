@@ -74,24 +74,15 @@ const STANDARD_EXERCISES = [
 ];
 
 async function main() {
-  //console.log('🌱 Start seeding...');
-
-  // ---------------------------------------------------------
-  // 1. SEED EXERCISES
-  // ---------------------------------------------------------
-
   // Clean up existing system exercises (where userId is null)
   await prisma.exercise.deleteMany({ where: { userId: null } });
 
   // Insert standard exercises
   await prisma.exercise.createMany({ data: STANDARD_EXERCISES });
-
-  //console.log(`✅ Seeded ${STANDARD_EXERCISES.length} system exercises.`);
 }
 
 main()
   .catch((e) => {
-    //console.error(e);
     process.exit(1);
   })
   .finally(async () => {

@@ -27,23 +27,11 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyOTP from "./pages/VerifyOTP";
 import Footer from "./components/Footer";
 
-// -----------------------------------------------------------------------------
-// ROUTE GUARDS
-// -----------------------------------------------------------------------------
-
-/**
- * Protects routes that require authentication.
- * If no token is found, redirects to Login.
- */
 const ProtectedRoute = () => {
   const token = localStorage.getItem("token");
   return token ? <Outlet /> : <Navigate to='/login' replace />;
 };
 
-/**
- * Restricts access to auth pages (Login, Signup) for logged-in users.
- * If a token exists, redirects to Dashboard.
- */
 const PublicRoute = () => {
   const token = localStorage.getItem("token");
   return token ? <Navigate to='/' replace /> : <Outlet />;
@@ -54,12 +42,6 @@ const PublicRoute = () => {
 // -----------------------------------------------------------------------------
 
 function App() {
-  useEffect(() => {
-    console.log(
-      "%c Built by Debangshu Mukherjee 🚀 ",
-      "background: #222; color: #bada55; font-size: 20px; padding: 10px; border-radius: 5px; min-width: 100px; text-align: center;",
-    );
-  }, []);
   return (
     <BrowserRouter>
       <Routes>
